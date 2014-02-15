@@ -6,5 +6,16 @@
         <group>
             <file>file:/D:/Documents/Dropbox/vakken/DPI/Java/Start%20Loan%20Broker%20-%20GUI/src/RunMessaging.java</file>
         </group>
+        <group name="PTS-ESD"/>
+        <group name="JAE61">
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/client/LoanTestClient.java</file>
+        </group>
+        <group name="Design Patterns and Integration">
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/loanbroker/LoanBroker.java</file>
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/messaging/MessagingGateway.java</file>
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/client/LoanTestClient.java</file>
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/RunMessaging.java</file>
+            <file>file:/C:/Users/user/Documents/NetBeansProjects/start_loan_broker_gui/src/messaging/LoanBrokerGateway.java</file>
+        </group>
     </open-files>
 </project-private>

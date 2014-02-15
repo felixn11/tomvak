@@ -1,18 +1,7 @@
 package client;
 
 import client.gui.ClientFrame;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
+import messaging.LoanBrokerGateway;
 
 /**
  * This class represents one Client Application.
@@ -24,40 +13,20 @@ import javax.naming.InitialContext;
  */
 public class LoanTestClient {
 
-    /*
-     * Connection to JMS
-     */
-    private Connection connection; // to connect to the JMS
-    protected Session session; // session for making messages, producers and consumers
-
-    private MessageProducer producer; // for sending messages
-    private MessageConsumer consumer; // for receiving messages
-
-    private ClientSerializer serializer; // for serializing ClientRequest and ClientReply to/from XML
-    
     private ClientFrame frame; // GUI
+    private LoanBrokerGateway gtw;
 
-    public LoanTestClient(String name, String factoryName, String requestQueue, String replyQueue) throws Exception {
+    public LoanTestClient(String name, String factoryName, String requestQueue, String replyQueue) {
         super();
-        // connecting to the JMS
-        Context jndiContext = new InitialContext();
-        ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext.lookup(factoryName);
-        connection = connectionFactory.createConnection();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        // connect to the sender channel
-        Destination senderDestination = (Destination) jndiContext.lookup(requestQueue);
-        producer = session.createProducer(senderDestination);
-        // connect to the receiver channel
-        Destination receiverDestination = (Destination) jndiContext.lookup(replyQueue);
-        consumer = session.createConsumer(receiverDestination);
-        consumer.setMessageListener(new MessageListener() {
+        
+        gtw = new LoanBrokerGateway(factoryName, requestQueue, replyQueue) {
 
-            public void onMessage(Message message) {
-                processLoanOffer((TextMessage) message);
+            @Override
+            public void onLoanOffer(ClientReply r) {
+                processReply(r);
             }
-        });
-         // create the serializer
-        serializer = new ClientSerializer();
+        };
+        
          // create the GUI
         frame = new ClientFrame(name) {
 
@@ -75,39 +44,18 @@ public class LoanTestClient {
             }
         });
     }
+    
+    public void processReply(ClientReply reply){
+        frame.addReply(null, reply);
+    }
+    
     /**
      * Sends new loan request to the LoanBroker.
      * @param request
      */
     public void sendRequest(ClientRequest request) {
-        try {
-            producer.send(session.createTextMessage(serializer.requestToString(request)));
-            frame.addRequest(request);
-        } catch (JMSException ex) {
-            ex.printStackTrace();
-        }
-    }
-    /**
-     * This message is called whenever a new client reply message arrives.
-     *  The message is de-serialized into a ClientReply, and the reply is shown in the GUI.
-     * @param message
-     */
-    private void processLoanOffer(TextMessage message) {
-        try {
-            ClientReply reply = serializer.replyFromString(((TextMessage) message).getText());
-            frame.addReply(null, reply);
-        } catch (JMSException ex) {
-            ex.printStackTrace();
-        }
-    }
-    /**
-     * Opens connestion to JMS,so that messages can be send and received.
-     */
-    public void start() {
-        try {
-            connection.start();
-        } catch (JMSException ex) {
-            ex.printStackTrace();
-        }
+        gtw.applyForLoan(request);
+        //producer.send(session.createTextMessage(serializer.requestToString(request)));
+        frame.addRequest(request);
     }
 }
