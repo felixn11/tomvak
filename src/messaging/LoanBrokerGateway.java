@@ -5,7 +5,6 @@
  */
 package messaging;
 
-import client.ClientReply;
 import client.ClientRequest;
 import client.ClientSerializer;
 import creditbureau.CreditReply;
@@ -42,16 +41,12 @@ public abstract class LoanBrokerGateway {
             
             public void onMessage(Message msg) {
                 try {
-                    System.out.println("LoanBrokerGateway got message");
                     TextMessage message = (TextMessage) msg;
                     String messageText = message.getText();
-                    System.out.println("received message : " + messageText);
                     if(messageText.contains("ClientReply")){
-                        System.out.println("client reply");
                         Reply r = clientSerializer.replyFromString(messageText);
                         onRecievedReply(r);
                     } else if(messageText.contains("CreditRequest")){
-                        System.out.println("credit request");
                         Request r = creditSerializer.requestFromString(messageText);
                         onRecievedRequest(r);
                     }
@@ -69,14 +64,12 @@ public abstract class LoanBrokerGateway {
     }
 
     public void applyForLoan(ClientRequest r) {
-        System.out.println("sending request to loanBroker");
         String serR = clientSerializer.requestToString(r);
         Message msg = gtw.createMsg(serR);
         gtw.send(msg);
     }
     
     public void sendCreditReply(CreditReply r){
-        System.out.println("send reply?");
         String serR = creditSerializer.replyToString(r);
         Message msg = gtw.createMsg(serR);
         gtw.send(msg);

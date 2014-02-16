@@ -24,8 +24,6 @@ public class CreditBureau {
     
     public CreditBureau(String factoryName, String creditRequestQueue, String creditReplyQueue) {
         super();
-        // connect to JMS
-        System.out.println("Initializing CreditBureau");
         
         //reply and request queue are inverted because the request comes from the loanbroker
         //and he expects a reply
@@ -34,12 +32,10 @@ public class CreditBureau {
             @Override
             public void onRecievedReply(Reply r) {
                 //no reply
-                System.out.println("recieved credit reply");
             }
 
             @Override
             public void onRecievedRequest(Request r) {
-                System.out.println("recieved request");
                 CreditRequest request = (CreditRequest)r;
                 onCreditRequest(request);
             }
@@ -64,7 +60,6 @@ public class CreditBureau {
      */
     private void onCreditRequest(CreditRequest request) {
         try {
-            System.out.println("On Credit Request");
             frame.addRequest(request);
             CreditReply reply = computeReply(request);
             gtw.sendCreditReply(reply);

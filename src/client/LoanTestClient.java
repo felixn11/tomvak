@@ -25,14 +25,12 @@ public class LoanTestClient {
 
             @Override
             public void onRecievedReply(Reply r) {
-                System.out.println("client recieved reply");
                 ClientReply reply = (ClientReply)r;
                 processReply(reply);
             }
 
             @Override
             public void onRecievedRequest(Request r) {
-                System.out.println("client recieved request");
                 //Client doesn't handle requests
             }
         };
@@ -65,7 +63,6 @@ public class LoanTestClient {
      * @param request
      */
     public void sendRequest(ClientRequest request) {
-        System.out.println("1 - applied for loan");
         gtw.applyForLoan(request);
         frame.addRequest(request);
     }

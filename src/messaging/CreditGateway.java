@@ -6,8 +6,6 @@
 
 package messaging;
 
-import bank.BankQuoteRequest;
-import client.ClientRequest;
 import creditbureau.CreditReply;
 import creditbureau.CreditRequest;
 import creditbureau.CreditSerializer;

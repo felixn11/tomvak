@@ -9,8 +9,6 @@ package messaging;
 import bank.BankQuoteReply;
 import bank.BankQuoteRequest;
 import bank.BankSerializer;
-import client.ClientRequest;
-import creditbureau.CreditReply;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jms.JMSException;
