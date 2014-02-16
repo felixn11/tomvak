@@ -6,10 +6,6 @@
 
 package messaging;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -19,7 +15,6 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
-import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -51,6 +46,7 @@ public class MessagingGateway {
             // connect to the sender channel
             Destination senderDestination = (Destination) jndiContext.lookup(requestQueue);
             producer = session.createProducer(senderDestination);
+            
             // connect to the receiver channel
             Destination receiverDestination = (Destination) jndiContext.lookup(replyQueue);
             consumer = session.createConsumer(receiverDestination);
@@ -65,7 +61,6 @@ public class MessagingGateway {
                 }
             });
             
-            connection.start();
         } catch (NamingException ex) {
             System.err.println(String.format("NamingException in MessagingGateway constructor: %s", ex.getMessage()));
         } catch (JMSException ex) {

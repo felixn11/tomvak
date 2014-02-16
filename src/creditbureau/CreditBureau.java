@@ -4,18 +4,9 @@ import creditbureau.gui.CreditFrame;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-import javax.naming.Context;
-import javax.naming.InitialContext;
+import messaging.LoanBrokerGateway;
+import messaging.Reply;
+import messaging.Request;
 
 /**
  * This class represents one Credit Agency Application.
@@ -28,60 +19,55 @@ public class CreditBureau {
 
     private Random random = new Random(); // for random generation of replies
     private CreditFrame frame; // GUI
-    private CreditSerializer serializer; // serializer CreditRequest CreditReply to/from XML:
-    /**
-     * attributes for connection to JMS
-     */
-    private Connection connection; // connection to the JMS server
-    protected Session session; // JMS session fro creating producers, consumers and messages
-    private MessageProducer producer; // producer for sending messages
-    private MessageConsumer consumer; // consumer for receiving messages
-
-    public CreditBureau(String factoryName, String creditRequestQueue, String creditReplyQueue) throws Exception {
+    
+    private LoanBrokerGateway gtw;
+    
+    public CreditBureau(String factoryName, String creditRequestQueue, String creditReplyQueue) {
         super();
         // connect to JMS
-        Context jndiContext = new InitialContext();
-        ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext.lookup(factoryName);
-        connection = connectionFactory.createConnection();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-
-        // connect to the sender channel
-        Destination senderDestination = (Destination) jndiContext.lookup(creditReplyQueue);
-        producer = session.createProducer(senderDestination);
-
-        // connect to the receiver channel and register as a listener on it
-        Destination receiverDestination = (Destination) jndiContext.lookup(creditRequestQueue);
-        consumer = session.createConsumer(receiverDestination);
-        consumer.setMessageListener(new MessageListener() {
-
-            public void onMessage(Message msg) {
-                onCreditRequest((TextMessage) msg);
+        System.out.println("Initializing CreditBureau");
+        
+        //reply and request queue are inverted because the request comes from the loanbroker
+        //and he expects a reply
+        gtw = new LoanBrokerGateway(factoryName, creditReplyQueue, creditRequestQueue) {
+            
+            @Override
+            public void onRecievedReply(Reply r) {
+                //no reply
+                System.out.println("recieved credit reply");
             }
-        });
-        // create the serializer
-        serializer = new CreditSerializer();
+
+            @Override
+            public void onRecievedRequest(Request r) {
+                System.out.println("recieved request");
+                CreditRequest request = (CreditRequest)r;
+                onCreditRequest(request);
+            }
+        };
 
         // create GUI
         frame = new CreditFrame();
         java.awt.EventQueue.invokeLater(new Runnable() {
-
             public void run() {
-
                 frame.setVisible(true);
             }
         });
     }
-/**
+    
+    public void start(){
+        gtw.start();
+    }
+    
+    /**
      * Processes a new request message by randomly generating a reply and sending it back.
      * @param message the credit request message
      */
-    private void onCreditRequest(TextMessage message) {
+    private void onCreditRequest(CreditRequest request) {
         try {
-            CreditRequest request = serializer.requestFromString(message.getText());
+            System.out.println("On Credit Request");
             frame.addRequest(request);
             CreditReply reply = computeReply(request);
-            Message replyMessage = session.createTextMessage(serializer.replyToString(reply));
-            producer.send(replyMessage);
+            gtw.sendCreditReply(reply);
             frame.addReply(request, reply);
         } catch (Exception ex) {
             Logger.getLogger(CreditBureau.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,15 +85,5 @@ public class CreditBureau {
         int history = (int) (random.nextInt(19) + 1);
 
         return new CreditReply(ssn, score, history);
-    }
-    /**
-     * Opens connestion to JMS,so that messages can be send and received.
-     */
-    public void start() {
-        try {
-            connection.start();
-        } catch (JMSException ex) {
-            Logger.getLogger(CreditBureau.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 }

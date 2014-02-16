@@ -2,6 +2,8 @@ package client;
 
 import client.gui.ClientFrame;
 import messaging.LoanBrokerGateway;
+import messaging.Reply;
+import messaging.Request;
 
 /**
  * This class represents one Client Application.
@@ -22,14 +24,21 @@ public class LoanTestClient {
         gtw = new LoanBrokerGateway(factoryName, requestQueue, replyQueue) {
 
             @Override
-            public void onLoanOffer(ClientReply r) {
-                processReply(r);
+            public void onRecievedReply(Reply r) {
+                System.out.println("client recieved reply");
+                ClientReply reply = (ClientReply)r;
+                processReply(reply);
+            }
+
+            @Override
+            public void onRecievedRequest(Request r) {
+                System.out.println("client recieved request");
+                //Client doesn't handle requests
             }
         };
         
          // create the GUI
         frame = new ClientFrame(name) {
-
             @Override
             public void send(ClientRequest request) {
                 sendRequest(request);
@@ -37,12 +46,14 @@ public class LoanTestClient {
         };
 
         java.awt.EventQueue.invokeLater(new Runnable() {
-
             public void run() {
-
                 frame.setVisible(true);
             }
         });
+    }
+    
+    public void start(){
+        gtw.start();
     }
     
     public void processReply(ClientReply reply){
@@ -54,8 +65,8 @@ public class LoanTestClient {
      * @param request
      */
     public void sendRequest(ClientRequest request) {
+        System.out.println("1 - applied for loan");
         gtw.applyForLoan(request);
-        //producer.send(session.createTextMessage(serializer.requestToString(request)));
         frame.addRequest(request);
     }
 }

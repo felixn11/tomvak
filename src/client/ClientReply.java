@@ -1,11 +1,13 @@
 package client;
 
+import messaging.Reply;
+
 /**
  *
  * This class stores all information about a bank offer
  * as a response to a cleint loan request.
  */
-public class ClientReply {
+public class ClientReply extends Reply{
 
         private double interest; // the interest that the bank offers
         private String quoteID; // the unique quote identification

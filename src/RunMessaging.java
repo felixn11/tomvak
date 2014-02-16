@@ -41,6 +41,7 @@ public class RunMessaging {
             broker.start();
             creditBuerau.start();
             ing.start();
+            client.start();
 
             // send three requests
             client.sendRequest(new ClientRequest(1, 100000, 24));

@@ -1,9 +1,11 @@
 package creditbureau;
 
+import messaging.Reply;
+
 /**
  * This class stores infomration about the credit history fr a specific client.
  */
-public class CreditReply {
+public class CreditReply extends Reply {
 
     private int SSN; // unique client number
     private int creditScore; // current credit ammount of the client

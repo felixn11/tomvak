@@ -8,6 +8,8 @@ package messaging;
 import client.ClientReply;
 import client.ClientRequest;
 import client.ClientSerializer;
+import creditbureau.CreditReply;
+import creditbureau.CreditSerializer;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -25,32 +27,62 @@ import javax.jms.TextMessage;
  */
 public abstract class LoanBrokerGateway {
 
-    protected ClientSerializer serializer; // for serializing ClientRequest and ClientReply to/from XML
+    protected ClientSerializer clientSerializer; // for serializing ClientRequest and ClientReply to/from XML
+    protected CreditSerializer creditSerializer; // for serializing CreditRequest and CreditReply to/from XML
+            
     private MessagingGateway gtw;
 
     public LoanBrokerGateway(String factoryName, String requestQueue, String replyQueue) {
-        serializer = new ClientSerializer();
+        clientSerializer = new ClientSerializer();
+        creditSerializer = new CreditSerializer();
+        
         gtw = new MessagingGateway(factoryName, requestQueue, replyQueue);
         
         gtw.setListener(new MessageListener() {
+            
             public void onMessage(Message msg) {
-                try {                    
+                try {
+                    System.out.println("LoanBrokerGateway got message");
                     TextMessage message = (TextMessage) msg;
-                    ClientReply r = serializer.replyFromString(message.getText());
-                    onLoanOffer(r);
+                    String messageText = message.getText();
+                    System.out.println("received message : " + messageText);
+                    if(messageText.contains("ClientReply")){
+                        System.out.println("client reply");
+                        Reply r = clientSerializer.replyFromString(messageText);
+                        onRecievedReply(r);
+                    } else if(messageText.contains("CreditRequest")){
+                        System.out.println("credit request");
+                        Request r = creditSerializer.requestFromString(messageText);
+                        onRecievedRequest(r);
+                    }
+                    
                 } catch (JMSException ex) {
                     System.err.println("Error in LoanBrokerGateway listener onMessage while processing received message from messaging gateway");
                     System.err.println(String.format("Error message: %s", ex.getMessage()));
-                }
+                } 
             }
         });
     }
+    
+    public void start(){
+        gtw.start();
+    }
 
     public void applyForLoan(ClientRequest r) {
-        String serR = serializer.requestToString(r);
+        System.out.println("sending request to loanBroker");
+        String serR = clientSerializer.requestToString(r);
+        Message msg = gtw.createMsg(serR);
+        gtw.send(msg);
+    }
+    
+    public void sendCreditReply(CreditReply r){
+        System.out.println("send reply?");
+        String serR = creditSerializer.replyToString(r);
         Message msg = gtw.createMsg(serR);
         gtw.send(msg);
     }
 
-    public abstract void onLoanOffer(ClientReply r);
+    public abstract void onRecievedReply(Reply r);
+    
+    public abstract void onRecievedRequest(Request r);
 }

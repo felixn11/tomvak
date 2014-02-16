@@ -1,12 +1,14 @@
 package creditbureau;
 
+import messaging.Request;
+
 /**
  *
  * This class stores all information about a
  * request to get the credit history of a specific client.
  *
  */
-public class CreditRequest {
+public class CreditRequest extends Request {
 
     int SSN; // unique client nummber
 

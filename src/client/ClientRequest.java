@@ -1,12 +1,14 @@
 package client;
 
+import messaging.Request;
+
 /**
  *
  * This class stores all information about a
  * request that a client submits to get a loan.
  *
  */
-public class ClientRequest {
+public class ClientRequest extends Request{
 
     private int SSN; // unique client number.
     private int amount; // the ammount to borrow
