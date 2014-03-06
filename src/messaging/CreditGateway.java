@@ -6,56 +6,46 @@
 
 package messaging;
 
-import creditbureau.CreditReply;
 import creditbureau.CreditRequest;
 import creditbureau.CreditSerializer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import messaging.requestreply.AsynchronousRequestor;
+import messaging.requestreply.IReplyListener;
+import messaging.requestreply.IRequestReplySerializer;
 
 /**
  *
  * @author user
  */
-public abstract class CreditGateway {
+public class CreditGateway {
     
-    protected CreditSerializer serializer;
+    protected IRequestReplySerializer serializer;
     
-    private MessagingGateway gtw;
+    private AsynchronousRequestor asyncRequestor;
     
-    public CreditGateway(String factoryName, String creditRequestQueue, String creditReplyQueue){
-        serializer = new CreditSerializer();
-        
-        gtw = new MessagingGateway(factoryName, creditRequestQueue, creditReplyQueue);
-        
-        gtw.setListener(new MessageListener() {
-
-            public void onMessage(Message msg) {
-                try {
-                    TextMessage message = (TextMessage) msg;
-                    String messageText = message.getText();
-                    CreditReply r = serializer.replyFromString(messageText);
-                    onRecievedReply(r);
-                } catch (JMSException ex) {
-                    Logger.getLogger(CreditGateway.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+    private IReplyListener listener;
+    
+    public CreditGateway(String creditRequestQueue, String creditReplyQueue){
+        try {
+            serializer = new CreditSerializer();
+            asyncRequestor = new AsynchronousRequestor("queueConnectionFactory", creditRequestQueue, creditReplyQueue, serializer);
+        } catch (Exception ex) {
+            Logger.getLogger(CreditGateway.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
-    public void sendCreditRequest(CreditRequest r){
-        String serR = serializer.requestToString(r);
-        Message msg = gtw.createMsg(serR);
-        gtw.send(msg);
+    public void sendCreditRequest(CreditRequest r, IReplyListener list){
+        this.listener = list;
+        asyncRequestor.sendRequest(r, listener);
     }
     
     public void start(){
-        gtw.start();
+        asyncRequestor.start();
+    } 
+
+    public void setMessageListener(IReplyListener msl) {
+        this.listener = msl;
     }
-    
-    public abstract void onRecievedReply(CreditReply r);    
     
 }

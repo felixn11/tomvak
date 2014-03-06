@@ -1,11 +1,13 @@
 package bank;
 
+import messaging.Reply;
+
 /**
  * This class stores information about the bank reply
  *  to a loan request of the specific client
  * 
  */
-public class BankQuoteReply {
+public class BankQuoteReply extends Reply{
 
     private double interest; // the loan interest
     private String quoteId; // the nunique quote Id

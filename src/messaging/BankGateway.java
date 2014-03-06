@@ -11,50 +11,37 @@ import bank.BankQuoteRequest;
 import bank.BankSerializer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+import messaging.requestreply.AsynchronousRequestor;
+import messaging.requestreply.IReplyListener;
 
 /**
  *
  * @author user
  */
-public abstract class BankGateway {
+public class BankGateway {
+    protected BankSerializer serializer;   
     
-    protected BankSerializer serializer;
+    private AsynchronousRequestor asyncRequestor;
     
-    private MessagingGateway gtw;
-    
-    public BankGateway(String factoryName, String bankRequestQueue, String bankReplyQueue){
-        serializer = new BankSerializer();
-        
-        gtw = new MessagingGateway(factoryName, bankRequestQueue, bankReplyQueue);
-        
-        gtw.setListener(new MessageListener() {
-
-            public void onMessage(Message msg) {
-                try {
-                    TextMessage message = (TextMessage) msg;
-                    String messageText = message.getText();
-                    BankQuoteReply r = serializer.replyFromString(messageText);
-                    onRecievedReply(r);
-                } catch (JMSException ex) {
-                    Logger.getLogger(BankGateway.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+    public BankGateway(String bankRequestQueue, String bankReplyQueue){
+        try {
+            serializer = new BankSerializer();
+            asyncRequestor = new AsynchronousRequestor("queueConnectionFactory", bankRequestQueue, bankReplyQueue, serializer);
+        } catch (Exception ex) {
+            Logger.getLogger(BankGateway.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
-    public void sendBankRequest(BankQuoteRequest r){
-        String serR = serializer.requestToString(r);
-        Message msg = gtw.createMsg(serR);
-        gtw.send(msg);
+    public void sendBankRequest(BankQuoteRequest r, IReplyListener l){
+        asyncRequestor.sendRequest(r, l);
     }
     
     public void start(){
-        gtw.start();
+        asyncRequestor.start();
     }
-    
-    public abstract void onRecievedReply(BankQuoteReply r);  
 }

@@ -1,12 +1,13 @@
 package bank;
 
 import com.thoughtworks.xstream.XStream;
+import messaging.requestreply.IRequestReplySerializer;
 
 /**
  *
  * This class serializes BankRequest and Bankreply to/from XML.
  */
-public class BankSerializer{
+public class BankSerializer implements IRequestReplySerializer{
 
     private static final String ALIAS_REQUEST = "BankQuoteRequest"; // tag name for BankRequest
     private static final String ALIAS_REPLY = "BankQuoteReply"; // tag name for BankReply
@@ -42,7 +43,7 @@ public class BankSerializer{
      * @param request is the BankRequest to be serialized into XML
      * @return the string containing XML with information about the request
      */
-    public String requestToString(BankQuoteRequest request) {
+    public String requestToString(Object request) {
         return xstream.toXML(request);
     }
     /**
@@ -50,7 +51,7 @@ public class BankSerializer{
      * @param request is the BankReply to be serialized into XML
      * @return the string containing XML with information about the reply
      */
-    public String replyToString(BankQuoteReply reply) {
+    public String replyToString(Object reply) {
         return xstream.toXML(reply);
     }
 }

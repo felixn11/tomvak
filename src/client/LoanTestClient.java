@@ -16,22 +16,16 @@ import messaging.Request;
 public class LoanTestClient {
 
     private ClientFrame frame; // GUI
-    private LoanBrokerGateway gtw;
+    private ClientLoanBrokerGateway gtw;
 
     public LoanTestClient(String name, String factoryName, String requestQueue, String replyQueue) {
         super();
         
-        gtw = new LoanBrokerGateway(factoryName, requestQueue, replyQueue) {
-
+        gtw = new ClientLoanBrokerGateway(factoryName, requestQueue, replyQueue) {
+            
             @Override
-            public void onRecievedReply(Reply r) {
-                ClientReply reply = (ClientReply)r;
-                processReply(reply);
-            }
-
-            @Override
-            public void onRecievedRequest(Request r) {
-                //Client doesn't handle requests
+            public void onRecievedReply(ClientRequest req, ClientReply rep) {
+                processReply(req, rep);
             }
         };
         
@@ -54,8 +48,8 @@ public class LoanTestClient {
         gtw.start();
     }
     
-    public void processReply(ClientReply reply){
-        frame.addReply(null, reply);
+    public void processReply(ClientRequest request, ClientReply reply){
+        frame.addReply(request, reply);
     }
     
     /**

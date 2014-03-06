@@ -1,11 +1,13 @@
 package bank;
 
+import messaging.Request;
+
 /**
  *
  * This class stores all information about an request from a bank to offer a
  * loan to a specific client.
  */
-public class BankQuoteRequest {
+public class BankQuoteRequest extends Request  {
 
     private int SSN; // unique client number
     private int credit; // the current credit of the client

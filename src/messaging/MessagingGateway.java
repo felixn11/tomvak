@@ -35,23 +35,23 @@ public class MessagingGateway {
     private MessageProducer producer; // for sending messages
     private MessageConsumer consumer; // for receiving messages
     
-    public MessagingGateway(String factoryName, String requestQueue, String replyQueue){
+    private String factoryName = "queueConnectionFactory";
+    
+    public MessagingGateway(Destination receiverDestination){
         try {
-            // connecting to the JMS
+            // connect to the sender channel
+            
+            
             Context jndiContext = new InitialContext();
             ConnectionFactory connectionFactory = (ConnectionFactory) jndiContext.lookup(factoryName);
             connection = connectionFactory.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             
-            // connect to the sender channel
-            Destination senderDestination = (Destination) jndiContext.lookup(requestQueue);
-            producer = session.createProducer(senderDestination);
+            producer = session.createProducer(null);
             
             // connect to the receiver channel
-            Destination receiverDestination = (Destination) jndiContext.lookup(replyQueue);
             consumer = session.createConsumer(receiverDestination);
             consumer.setMessageListener(new MessageListener() {
-
                 public void onMessage(Message message) {
                     try {
                         consumer.getMessageListener().onMessage(message);
@@ -60,12 +60,22 @@ public class MessagingGateway {
                     }
                 }
             });
-            
-        } catch (NamingException ex) {
-            System.err.println(String.format("NamingException in MessagingGateway constructor: %s", ex.getMessage()));
         } catch (JMSException ex) {
             System.err.println(String.format("JMSException in MessagingGateway constructor: %s", ex.getMessage()));
+        } catch (NamingException ex) {
+            System.err.println(String.format("JMSException in MessagingGateway constructor: %s", ex.getMessage()));
         }
+    }
+    
+    public static Destination getDestination(String destinationName){
+        Destination requestorDestination = null;
+        try {
+            Context jndiContext = new InitialContext();
+            requestorDestination = (Destination) jndiContext.lookup(destinationName);
+        } catch (NamingException ex) {
+            System.err.println(String.format("JMSException in MessagingGateway constructor: %s", ex.getMessage()));
+        }
+        return requestorDestination;
     }
     
     public void start() {
@@ -86,19 +96,19 @@ public class MessagingGateway {
         return msg;
     }
     
-    public void send(Message msg){
-        try {
-            this.producer.send(msg);
-        } catch (JMSException ex) {
-            System.err.println(String.format("JMSException in MessagingGateway send() : %s", ex.getMessage()));
-        }
-    }
-    
     public void setListener(MessageListener l){
         try {
             this.consumer.setMessageListener(l);
         } catch (JMSException ex) {
             System.err.println(String.format("JMSException in MessagingGateway setListener() : %s", ex.getMessage()));
+        }
+    }
+
+    public void send(Message msg, Destination requestorDestination) {
+        try {            
+            producer.send(requestorDestination, msg);
+        } catch (JMSException ex) {
+           System.err.println(String.format("JMSException in MessagingGateway send(Message msg, Destination requestorDestination) : \n %s", ex.getMessage()));
         }
     }
 }
