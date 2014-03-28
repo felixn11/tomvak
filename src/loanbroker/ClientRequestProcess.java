@@ -6,7 +6,7 @@ import client.ClientReply;
 import client.ClientRequest;
 import creditbureau.CreditReply;
 import creditbureau.CreditRequest;
-import messaging.BankGateway;
+import loanbroker.bank.BankGateway;
 import messaging.ClientGateway;
 import messaging.CreditGateway;
 import messaging.requestreply.IReplyListener;
@@ -98,7 +98,7 @@ abstract class ClientRequestProcess {
                 onBankQuoteReply(reply);
             }
         };
-        bankGateway.sendBankRequest(bankQuoteRequest, bankReplyListener);
+        bankGateway.sendRequest(bankQuoteRequest, bankReplyListener);
     }
 
     abstract void notifyReceivedCreditReply(ClientRequest clientRequest, CreditReply reply);

@@ -11,6 +11,7 @@ import client.ClientRequest;
 import client.ClientSerializer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.jms.Message;
 import messaging.requestreply.AsynchronousReplier;
 import messaging.requestreply.IRequestListener;
 
@@ -26,7 +27,13 @@ public abstract class ClientGateway {
     public ClientGateway(String clientRequestQueue){
         try {
             clientSerializer = new ClientSerializer();
-            asyncReplier = new AsynchronousReplier("queueConnectionFactory", clientRequestQueue, clientSerializer);
+            asyncReplier = new AsynchronousReplier("queueConnectionFactory", clientRequestQueue, clientSerializer) {
+
+                @Override
+                public Message beforeReply(Message request, Message reply) {
+                    return reply;
+                }
+            };
             asyncReplier.setRequestListener(new IRequestListener() {
 
                 public void receivedRequest(Object request) {

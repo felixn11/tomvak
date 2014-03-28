@@ -8,8 +8,8 @@ import bank.BankQuoteReply;
 import client.*;
 import creditbureau.CreditReply;
 import java.util.ArrayList;
+import loanbroker.bank.BankGateway;
 import loanbroker.gui.LoanBrokerFrame;
-import messaging.BankGateway;
 import messaging.ClientGateway;
 import messaging.CreditGateway;
 
@@ -22,6 +22,7 @@ public class LoanBroker {
     private ClientGateway clientGateway;
     private CreditGateway creditGateway;
     private BankGateway bankGateway;
+    
     /**
      *  the collection of active clientRequests
      */
@@ -31,14 +32,14 @@ public class LoanBroker {
     /**
      * Intializes attributes, and registers itself (method onClientRequest) as
      * the listener for new client requests
-     * @param connectionName
+     * @param factoryName
      * @param clientRequestQueue
      * @param creditRequestQueue
      * @param creditReplyQueue
-     * @param bankRequestQueue
      * @param bankReplyQueue
+     * @throws java.lang.Exception
      */
-    public LoanBroker(String clientRequestQueue, String creditRequestQueue, String creditReplyQueue, String bankRequestQueue, String bankReplyQueue) throws Exception{
+    public LoanBroker(String factoryName, String clientRequestQueue, String creditRequestQueue, String creditReplyQueue, String bankReplyQueue) throws Exception{
         super();
         frame = new LoanBrokerFrame();
         activeClientProcesses = new ArrayList<ClientRequestProcess>();
@@ -51,7 +52,7 @@ public class LoanBroker {
         };
 
         creditGateway = new CreditGateway(creditRequestQueue, creditReplyQueue);
-        bankGateway = new BankGateway(bankRequestQueue,bankReplyQueue);
+        bankGateway = new BankGateway(factoryName, bankReplyQueue);
 
         java.awt.EventQueue.invokeLater(new Runnable() {
 
@@ -59,6 +60,10 @@ public class LoanBroker {
                 frame.setVisible(true);
             }
         });
+    }
+    
+    public void addbank(String factory, String destination, String expression){
+        bankGateway.addBank(factory, destination, expression);
     }
 
     /**

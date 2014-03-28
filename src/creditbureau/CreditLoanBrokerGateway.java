@@ -6,6 +6,7 @@
 
 package creditbureau;
 
+import javax.jms.Message;
 import messaging.requestreply.AsynchronousReplier;
 import messaging.requestreply.IRequestListener;
 import messaging.requestreply.IRequestReplySerializer;
@@ -21,7 +22,13 @@ public abstract class CreditLoanBrokerGateway {
     public CreditLoanBrokerGateway(String factoryName, String requestRecieverQueue) {
         try {
             creditSerializer = new CreditSerializer();
-            asyncReplier = new AsynchronousReplier(factoryName, requestRecieverQueue, creditSerializer);
+            asyncReplier = new AsynchronousReplier(factoryName, requestRecieverQueue, creditSerializer) {
+
+                @Override
+                public Message beforeReply(Message request, Message reply) {
+                    return reply;
+                }
+            };
             asyncReplier.setRequestListener(new IRequestListener() {
 
                 public void receivedRequest(Object request) {

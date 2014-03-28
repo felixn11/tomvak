@@ -3,6 +3,8 @@ package messaging.requestreply;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageListener;
@@ -16,8 +18,10 @@ import messaging.MessagingGateway;
  * @param <REPLY>
  * @author Maja Pesic
  */
-public class AsynchronousReplier<REQUEST, REPLY> {
+public abstract class AsynchronousReplier<REQUEST, REPLY> {
 
+    
+    
     /**
      * For sending and receiving messages
      */
@@ -118,7 +122,7 @@ public class AsynchronousReplier<REQUEST, REPLY> {
             Destination returnAddress = msg.getJMSReplyTo();
             
             replyMessage.setJMSCorrelationID(msg.getJMSMessageID());
-            
+            replyMessage = beforeReply(msg, replyMessage);
             gateway.send(replyMessage, returnAddress);
             
             return true;
@@ -127,4 +131,6 @@ public class AsynchronousReplier<REQUEST, REPLY> {
             return false;
         }
     }
+    
+    public Message beforeReply(Message request, Message reply) { return null;};
 }

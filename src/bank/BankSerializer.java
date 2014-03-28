@@ -1,6 +1,7 @@
 package bank;
 
 import com.thoughtworks.xstream.XStream;
+import javax.jms.TextMessage;
 import messaging.requestreply.IRequestReplySerializer;
 
 /**
@@ -53,5 +54,9 @@ public class BankSerializer implements IRequestReplySerializer{
      */
     public String replyToString(Object reply) {
         return xstream.toXML(reply);
+    }
+
+    public void replyFromString(TextMessage msg) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

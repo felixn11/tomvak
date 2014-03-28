@@ -116,10 +116,10 @@ public class AsynchronousRequestor<REQUEST, REPLY> {
             Message msg = gateway.createMsg(message);
             
             msg.setJMSReplyTo(replyReceiverDest);
-            
+ 
             //System.out.println(String.format("registered request: {%s}, {%s}, {%s}", requestID, listener.toString(), request.toString()));
             gateway.send(msg, requestSenderDest);
-            
+            //ID wordt pas gezet nadat je de message verstuurd
             String requestID = msg.getJMSMessageID();
             listeners.put(requestID, new Pair(listener, request));
         } catch (JMSException ex) {

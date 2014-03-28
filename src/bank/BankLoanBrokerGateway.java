@@ -9,6 +9,7 @@ package bank;
 import creditbureau.CreditReply;
 import creditbureau.CreditRequest;
 import creditbureau.CreditSerializer;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import messaging.requestreply.AsynchronousReplier;
 import messaging.requestreply.IRequestListener;
@@ -21,17 +22,33 @@ import messaging.requestreply.IRequestReplySerializer;
 public abstract class BankLoanBrokerGateway {
     private IRequestReplySerializer bankSerializer;
     private AsynchronousReplier asyncReplier;
+    
+    private static final String AGGREGATION_CORRELATION = "aggregation";
 
     public BankLoanBrokerGateway(String factoryName, String requestRecieverQueue) {
         try {
             bankSerializer = new BankSerializer();
-            asyncReplier = new AsynchronousReplier(factoryName, requestRecieverQueue, bankSerializer);
+            asyncReplier = new AsynchronousReplier(factoryName, requestRecieverQueue, bankSerializer) {
+
+                @Override
+                public Message beforeReply(Message request, Message reply) {
+                    try {
+                        int aggregateID = request.getIntProperty(AGGREGATION_CORRELATION);
+                        reply.setIntProperty(AGGREGATION_CORRELATION, aggregateID);
+                        return reply;
+                    } catch (JMSException ex) {
+                        System.err.println(String.format("JMS Exception in AsynchronousReplier.beforeReply() : %s", ex.getMessage()));
+                        return null;
+                    }
+                }
+            };
             asyncReplier.setRequestListener(new IRequestListener() {
 
                 public void receivedRequest(Object request) {
                     onRecievedRequest(request);
                 }
             });
+            
         } catch (Exception ex) {
             ex.printStackTrace();
         }
